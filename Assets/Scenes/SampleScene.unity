@@ -9056,6 +9056,7 @@ MonoBehaviour:
   boostMultiplier: 30
   baseSpeed: 15
   scoreManager: {fileID: 904060247}
+  pauseMenuPanel: {fileID: 0}
 --- !u!58 &772121524
 CircleCollider2D:
   m_ObjectHideFlags: 0

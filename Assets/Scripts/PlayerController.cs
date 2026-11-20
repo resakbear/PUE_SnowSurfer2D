@@ -14,11 +14,17 @@ public class PlayerController : MonoBehaviour
     [Header("Pause Menu")]
     [SerializeField] private GameObject pauseMenuPanel;
 
+    [SerializeField] private float jumpForce = 10f; // Force applied when the player jumps
+
+
 
     Rigidbody2D rb;
     SurfaceEffector2D surfaceEffector2D;
 
     InputAction moveAction;
+    InputAction jumpAction;
+    bool isGrounded;
+
     Vector2 moveValue ; 
     int flipCount;
     float totalRotation;
@@ -42,11 +48,11 @@ public class PlayerController : MonoBehaviour
 
         // Get the Move action from the Input System
         moveAction = InputSystem.actions.FindAction("Move");
-    
+        jumpAction = InputSystem.actions.FindAction("Jump");
+
         // Get the Rigidbody2D component
         rb = GetComponent<Rigidbody2D>();
         surfaceEffector2D = FindAnyObjectByType<SurfaceEffector2D>();           
-    
     }
 
     // Update is called once per frame
@@ -60,6 +66,22 @@ public class PlayerController : MonoBehaviour
         RotatePlayer();
         BoostPlayer();
         CalculateFlips();
+        Jump();
+    }
+
+    void Jump()
+    {
+        if (isPaused || !isGrounded) return;
+
+        bool jumpPressed = jumpAction != null && jumpAction.enabled
+            ? jumpAction.WasPressedThisFrame()
+            : Keyboard.current != null && Keyboard.current.spaceKey.wasPressedThisFrame;
+
+        if (jumpPressed)
+        {
+            rb.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
+            isGrounded = false;
+        }
     }
 
     private void ToogglePause()
@@ -96,9 +118,7 @@ public class PlayerController : MonoBehaviour
         {
             surfaceEffector2D.speed = baseSpeed; // Reset speed when not moving forward
         }
-
     }
-
 
 private void RotatePlayer()
     {
@@ -122,4 +142,32 @@ private void RotatePlayer()
             }
         }
     }
+
+private void OnCollisionEnter2D(Collision2D collision)
+{
+    CheckGround(collision);
+}
+
+private void OnCollisionStay2D(Collision2D collision)
+{
+    CheckGround(collision);
+}
+
+private void OnCollisionExit2D(Collision2D collision)
+{
+    isGrounded = false;
+}
+
+private void CheckGround(Collision2D collision)
+{
+    foreach (ContactPoint2D contact in collision.contacts)
+    {
+        if (contact.normal.y > 0.5f)
+        {
+            isGrounded = true;
+            return;
+        }
+    }
+}
+
 }
